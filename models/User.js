@@ -5,24 +5,24 @@ const { hash } = require('bcrypt');
 const userSchema = new Schema({
     username: {
         type: String,
-        required: true,
+        required: [true, "Username is required."],
         min: [3, "Username must be atlast 3 characters long."],
-        unique: [true, "Username is already taken."]
+        unique: true
     },
     email: {
         type: String,
-        required: true,
-        unique: true,
-        validator: [isEmail, "Email is not valid."]
+        required: [true, "Email is required."],
+        validator: [isEmail, "Email is not valid."],
+        unique: true
     },
     password: {
         type: String,
-        required: true,
+        required: [true, "Password is required."],
         minlength: [8, "Password must be minimum 8 characters long."]
     },
     confirmPassword: {
         type: String,
-        required: true,
+        required: [true, "Password confirmation is required."],
         validate: {
             validator: function (value) {
                 return value === this.password;
@@ -42,6 +42,14 @@ userSchema.pre('save', async function (next) {
 
     next();
 });
+
+userSchema.post('save', function(error, doc, next) {
+    if (error.code === 11000) {
+      next(new Error(Object.keys(error.keyValue)[0] + " already exists."));
+    } else {
+      next(error);
+    }
+  });
 
 const User = model('User', userSchema);
 
