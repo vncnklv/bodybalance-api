@@ -14,6 +14,13 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 });
 
+app.all('*', (req, res) => {
+    res.status(404).json({
+        status: 'fail',
+        message: `Can't find ${req.originalUrl} on this server!`
+    });
+});
+
 const port = 3000
 app.listen(port, (err) => {
     if (err) {
