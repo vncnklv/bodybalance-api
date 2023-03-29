@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const { generateToken } = require("../utilities");
 
-const signIn = async (req, res) => {
+exports.signIn = async (req, res) => {
     const user = await User.findOne({ username: new RegExp(`^${req.body.username}$`, 'i') });
 
     let passwordsMatch = false;
@@ -13,7 +13,7 @@ const signIn = async (req, res) => {
             status: "success",
             data: {
                 username: user.username,
-                token: generateToken(user)
+                token: generateToken({ userId: user._id })
             }
         });
     } else {
@@ -24,7 +24,7 @@ const signIn = async (req, res) => {
     }
 }
 
-const signUp = async (req, res) => {
+exports.signUp = async (req, res) => {
     try {
         const user = new User({
             username: req.body.username,
@@ -39,7 +39,7 @@ const signUp = async (req, res) => {
             status: "success",
             data: {
                 username: user.username,
-                token: generateToken(user)
+                token: generateToken({ userId: user._id })
             }
         });
     } catch (err) {
@@ -49,5 +49,3 @@ const signUp = async (req, res) => {
         })
     }
 }
-
-module.exports = { signIn, signUp };
