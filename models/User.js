@@ -34,7 +34,7 @@ const userSchema = new Schema({
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
-    if(this.password !== this.confirmPassword) return;
+    if (this.password !== this.confirmPassword) return;
 
     this.password = await hash(this.password, 12);
 
@@ -43,13 +43,15 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
-userSchema.post('save', function(error, doc, next) {
+userSchema.post('save', function (error, doc, next) {
     if (error.code === 11000) {
-      next(new Error(Object.keys(error.keyValue)[0] + " already exists."));
+        next(new Error(Object.keys(error.keyValue)[0] + " is already in use."));
+    } else if (error.name === "ValidationError") {
+        next(new Error(Object.values(error.errors).map(val => val.message)[0]));
     } else {
-      next(error);
+        next(error);
     }
-  });
+});
 
 const User = model('User', userSchema);
 
