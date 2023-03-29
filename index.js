@@ -5,10 +5,15 @@ require("./database");
 const cors = require('./middleware/cors');
 const requestLogger = require("./middleware/requestLogger");
 
+const routes = require("./routes/routes");
+
 const app = express();
 
+// app.use(cors);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
-app.use(cors);
+app.use(routes);
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
