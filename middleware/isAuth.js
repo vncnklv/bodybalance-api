@@ -13,8 +13,7 @@ exports.isAuth = async (req, res, next) => {
         return
     }
 
-    const user = await User.findById(userId);
-
+    const user = await User.findById(userId).populate('weightIns');
     if(!user) {
         res.status(401).json({
             status: "failed",
@@ -22,7 +21,7 @@ exports.isAuth = async (req, res, next) => {
         })
         return
     }
-    
+
     req.user = user; 
 
     next();

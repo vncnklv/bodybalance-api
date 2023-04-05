@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const secret = process.env.SECRET;
+const mongoose = require('mongoose');
 
 function generateToken(data) {
     return jwt.sign(data, secret, { expiresIn: '1d' });
@@ -15,4 +16,8 @@ function verifyToken(token) {
 
 }
 
-module.exports = { generateToken, verifyToken };
+function areEqualObjectIds(id1, id2) {
+    return id1.equals(id2);
+}
+
+module.exports = { generateToken, verifyToken, areEqualObjectIds };

@@ -1,6 +1,6 @@
-const { Schema, model } = require('mongoose')
+const { Schema, model, Types: { ObjectId } } = require('mongoose')
 const { isEmail } = require('validator');
-const { hash } = require('bcrypt');
+const { hash, getRounds } = require('bcrypt');
 
 const userSchema = new Schema({
     username: {
@@ -20,25 +20,22 @@ const userSchema = new Schema({
         required: [true, "Password is required."],
         minlength: [8, "Password must be minimum 8 characters long."]
     },
-    confirmPassword: {
-        type: String,
-        required: [true, "Password confirmation is required."],
-        validate: {
-            validator: function (value) {
-                return value === this.password;
-            },
-            message: "Passwords doesn't match."
-        }
-    }
-
+    weightIns: {
+        type: [ObjectId],
+        ref: 'DailyWeight',
+        "default": []
+    },
 }, { timestamps: true });
 
+userSchema.virtual('confirmPassword').set(function (value) {
+    if (this.password !== value) {
+        throw new Error('Repeat password should match password');
+    }
+});
+
 userSchema.pre('save', async function (next) {
-    if (this.password !== this.confirmPassword) return;
-
-    this.password = await hash(this.password, 12);
-
-    this.confirmPassword = undefined;
+    if (this.isModified('password'))
+        this.password = await hash(this.password, 12);
 
     next();
 });
