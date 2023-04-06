@@ -91,7 +91,7 @@ exports.removeWeight = async (req, res) => {
 
     res.status(200).json({
         status: "success",
-        data: user.weightIns
+        data: weightData
     })
 }
 
