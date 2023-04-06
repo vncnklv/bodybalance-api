@@ -30,7 +30,8 @@ exports.signUp = async (req, res) => {
             username: req.body.username,
             email: req.body.email,
             password: req.body.password,
-            confirmPassword: req.body.confirmPassword
+            confirmPassword: req.body.confirmPassword,
+            role: 'user'
         });
 
         await user.save();

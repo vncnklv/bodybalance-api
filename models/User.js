@@ -20,6 +20,9 @@ const userSchema = new Schema({
         required: [true, "Password is required."],
         minlength: [8, "Password must be minimum 8 characters long."]
     },
+    role:{
+        type: String,
+    },
     weightIns: {
         type: [ObjectId],
         ref: 'DailyWeight',
@@ -44,7 +47,7 @@ userSchema.post('save', function (error, doc, next) {
     if (error.code === 11000) {
         next(new Error(Object.keys(error.keyValue)[0] + " is already in use."));
     } else if (error.name === "ValidationError") {
-        next(new Error(Object.values(error.errors).map(val => val.message)[0]));
+        next(new Error(Object.values(error.errors).map(val => val.message)));
     } else {
         next(error);
     }
