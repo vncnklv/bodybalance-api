@@ -20,7 +20,7 @@ dailyWeightSchema.post('save', function (error, doc, next) {
     if (error.code === 11000) {
         next(new Error(`There is already data for this day.`));
     } else if (error.name === "ValidationError") {
-        next(new Error(Object.values(error.errors).map(val => val.message)[0]));
+        next(new Error(Object.values(error.errors).map(val => val.message)));
     } else {
         next(error);
     }
