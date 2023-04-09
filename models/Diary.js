@@ -52,7 +52,7 @@ const diarySchema = new Schema({
     },
     ownerId: {
         type: ObjectId,
-        ref: 'User'
+        ref: 'user'
     }
 }, { timestamps: true });
 
@@ -97,9 +97,6 @@ const calculateMicronutrients = (micronutrients, micronutrientsToAdd) => {
     return micronutrients;
 };
 
-const Diary = model('Diary', diarySchema);
-
-// const diary = new Diary({date: '2020-12-12'});
-// diary.save().then(() => console.log('Diary saved!')).catch(err => console.log(err.message));
+const Diary = model('diary', diarySchema);
 
 module.exports = Diary;

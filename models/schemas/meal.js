@@ -4,7 +4,7 @@ const micronutrientsSchema = require('./micronutrients');
 const foodSchema = new Schema({
     food: {
         type: ObjectId,
-        ref: 'Food',
+        ref: 'food',
     },
     quantity: {
         type: Number,

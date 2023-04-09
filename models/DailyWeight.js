@@ -12,7 +12,7 @@ const dailyWeightSchema = new Schema({
     },
     ownerId: {
         type: ObjectId,
-        ref: 'User'
+        ref: 'user'
     }
 });
 
@@ -28,6 +28,6 @@ dailyWeightSchema.post('save', function (error, doc, next) {
 
 dailyWeightSchema.index({ date: 1, ownerId: 1 }, { unique: true });
 
-const DailyWeight = model('DailyWeight', dailyWeightSchema);
+const DailyWeight = model('dailyWeight', dailyWeightSchema);
 
 module.exports = DailyWeight;

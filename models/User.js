@@ -25,13 +25,13 @@ const userSchema = new Schema({
     },
     weightIns: {
         type: [ObjectId],
-        ref: 'DailyWeight',
-        "default": []
+        ref: 'dailyWeight',
+        default: []
     },
     diaries: {
         type: [ObjectId],
-        ref: 'Diary',
-        "default": []
+        ref: 'diary',
+        default: []
     }
 }, { timestamps: true });
 

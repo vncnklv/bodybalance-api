@@ -40,7 +40,7 @@ const foodSchema = new Schema({
     },
     ownerId: {
         type: ObjectId,
-        ref: 'User'
+        ref: 'user'
     }
 }, { timestamps: true });
 
