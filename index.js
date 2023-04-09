@@ -1,7 +1,7 @@
 const express = require('express');
 require('dotenv').config();
 require("./database");
-
+require('./models/Diary');
 const cors = require('./middleware/cors');
 const requestLogger = require("./middleware/requestLogger");
 

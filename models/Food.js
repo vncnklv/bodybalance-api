@@ -1,5 +1,5 @@
 const { Schema, model, Types: { ObjectId } } = require('mongoose')
-const micronutrientsSchema = require('./Micronutrients');
+const micronutrientsSchema = require('./schemas/micronutrients');
 
 const foodSchema = new Schema({
     name: {

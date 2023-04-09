@@ -20,7 +20,7 @@ const userSchema = new Schema({
         required: [true, "Password is required."],
         minlength: [8, "Password must be minimum 8 characters long."]
     },
-    role:{
+    role: {
         type: String,
     },
     weightIns: {
@@ -28,6 +28,11 @@ const userSchema = new Schema({
         ref: 'DailyWeight',
         "default": []
     },
+    diaries: {
+        type: [ObjectId],
+        ref: 'Diary',
+        "default": []
+    }
 }, { timestamps: true });
 
 userSchema.virtual('confirmPassword').set(function (value) {
