@@ -104,8 +104,6 @@ diarySchema.pre('save', async function (next) {
         calculateMealNutrients(this.dinner);
         calculateMealNutrients(this.snacks);
 
-        console.log(this.breakfast);
-
         this.protein = this.breakfast.protein + this.lunch.protein + this.dinner.protein + this.snacks.protein;
         this.carbohydrates = this.breakfast.carbohydrates + this.lunch.carbohydrates + this.dinner.carbohydrates + this.snacks.carbohydrates;
         this.fats = this.breakfast.fats + this.lunch.fats + this.dinner.fats + this.snacks.fats;
@@ -126,15 +124,42 @@ diarySchema.pre('save', async function (next) {
 });
 
 const calculateMealNutrients = (meal) => {
+    if(meal.foods.length === 0) {
+        meal.protein = 0;
+        meal.carbohydrates = 0;
+        meal.fats = 0;
+        meal.calories = 0;
+        meal.fiber = 0;
+        meal.cholesterol = 0;
+        meal.micronutrients = {};
+        return;
+    }
+
+    let protein = 0;
+    let carbohydrates = 0;
+    let fats = 0;
+    let calories = 0;
+    let fiber = 0;
+    let cholesterol = 0;
+    let micronutrients = {};
+
     meal.foods.forEach(food => {
-        meal.protein += food.food.protein * food.quantity;
-        meal.carbohydrates += food.food.carbohydrates * food.quantity;
-        meal.fats += food.food.fats * food.quantity;
-        meal.calories += food.food.calories * food.quantity;
-        meal.fiber += food.food.fiber * food.quantity;
-        meal.cholesterol += food.food.cholesterol * food.quantity;
-        calculateMicronutrients(meal.micronutrients, food.food.micronutrients, food.quantity);
+        protein += food.food.protein * food.quantity;
+        carbohydrates += food.food.carbohydrates * food.quantity;
+        fats += food.food.fats * food.quantity;
+        calories += food.food.calories * food.quantity;
+        fiber += food.food.fiber * food.quantity;
+        cholesterol += food.food.cholesterol * food.quantity;
+        calculateMicronutrients(micronutrients, food.food.micronutrients, food.quantity);
     });
+
+    meal.protein = protein;
+    meal.carbohydrates = carbohydrates;
+    meal.fats = fats;
+    meal.calories = calories;
+    meal.fiber = fiber;
+    meal.cholesterol = cholesterol;
+    meal.micronutrients = micronutrients;
 };
 
 const calculateMicronutrients = (micronutrients, micronutrientsToAdd, quantity = 1) => {
