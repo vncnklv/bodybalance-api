@@ -27,8 +27,9 @@ const diarySchema = new Schema({
         type: Number,
         default: 0
     },
-    macronutrients: {
+    micronutrients: {
         type: micronutrientsSchema,
+        default: {}
     },
     breakfast: {
         type: mealSchema,
@@ -69,8 +70,42 @@ diarySchema.post('save', function (error, doc, next) {
 });
 
 diarySchema.pre('save', async function (next) {
-    // calculate macronutrients if meals are changed
     if (this.isModified('breakfast') || this.isModified('lunch') || this.isModified('dinner') || this.isModified('snacks')) {
+        await this.populate(
+            [
+                {
+                    path: 'breakfast.foods',
+                    populate: {
+                        path: 'food',
+                    },
+                },
+                {
+                    path: 'lunch.foods',
+                    populate: {
+                        path: 'food',
+                    },
+                },
+                {
+                    path: 'dinner.foods',
+                    populate: {
+                        path: 'food',
+                    },
+                },
+                {
+                    path: 'snacks.foods',
+                    populate: {
+                        path: 'food',
+                    },
+                },
+            ]);
+
+        calculateMealNutrients(this.breakfast);
+        calculateMealNutrients(this.lunch);
+        calculateMealNutrients(this.dinner);
+        calculateMealNutrients(this.snacks);
+
+        console.log(this.breakfast);
+
         this.protein = this.breakfast.protein + this.lunch.protein + this.dinner.protein + this.snacks.protein;
         this.carbohydrates = this.breakfast.carbohydrates + this.lunch.carbohydrates + this.dinner.carbohydrates + this.snacks.carbohydrates;
         this.fats = this.breakfast.fats + this.lunch.fats + this.dinner.fats + this.snacks.fats;
@@ -78,20 +113,35 @@ diarySchema.pre('save', async function (next) {
         this.fiber = this.breakfast.fiber + this.lunch.fiber + this.dinner.fiber + this.snacks.fiber;
         this.cholesterol = this.breakfast.cholesterol + this.lunch.cholesterol + this.dinner.cholesterol + this.snacks.cholesterol;
 
+
         // calculate micronutrients if there are any presented in any of the meals in the diary
-        this.micronutrients = calculateMicronutrients(this.micronutrients, this.breakfast.micronutrients);
-        this.micronutrients = calculateMicronutrients(this.micronutrients, this.lunch.micronutrients);
-        this.micronutrients = calculateMicronutrients(this.micronutrients, this.dinner.micronutrients);
-        this.micronutrients = calculateMicronutrients(this.micronutrients, this.snacks.micronutrients);
+
+        calculateMicronutrients(this.micronutrients, this.breakfast.micronutrients);
+        calculateMicronutrients(this.micronutrients, this.lunch.micronutrients);
+        calculateMicronutrients(this.micronutrients, this.dinner.micronutrients);
+        calculateMicronutrients(this.micronutrients, this.snacks.micronutrients);
+
     }
     next();
 });
 
-const calculateMicronutrients = (micronutrients, micronutrientsToAdd) => {
+const calculateMealNutrients = (meal) => {
+    meal.foods.forEach(food => {
+        meal.protein += food.food.protein * food.quantity;
+        meal.carbohydrates += food.food.carbohydrates * food.quantity;
+        meal.fats += food.food.fats * food.quantity;
+        meal.calories += food.food.calories * food.quantity;
+        meal.fiber += food.food.fiber * food.quantity;
+        meal.cholesterol += food.food.cholesterol * food.quantity;
+        calculateMicronutrients(meal.micronutrients, food.food.micronutrients, food.quantity);
+    });
+};
+
+const calculateMicronutrients = (micronutrients, micronutrientsToAdd, quantity = 1) => {
     if (micronutrientsToAdd) {
-        Object.keys(micronutrientsToAdd).forEach(key => {
+        Object.keys(micronutrientsToAdd.toObject()).forEach(key => {
             if (!micronutrients[key]) micronutrients[key] = 0;
-            micronutrients[key] += micronutrientsToAdd[key];
+            micronutrients[key] += micronutrientsToAdd[key] * quantity;
         });
     }
     return micronutrients;
