@@ -20,12 +20,14 @@ exports.getAllDiariesForCurrentUser = async (req, res) => {
 
 exports.addDiary = async (req, res) => {
     const diary = new Diary({
-        date: req.body.date,
+        date: req.body.date || new Date().toISOString().substring(0, 10),
         ownerId: req.user._id
     });
 
     try {
         await diary.save();
+        req.user.diaries.push(diary);
+        await req.user.save();
         res.status(201).json({
             status: 'success',
             data: diary
