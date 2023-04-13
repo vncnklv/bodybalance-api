@@ -1,5 +1,6 @@
 const { Schema, model, Types: { ObjectId } } = require('mongoose')
 const { isEmail } = require('validator');
+const goalsSchema = require('./schemas/goals');
 const { hash } = require('bcrypt');
 
 const userSchema = new Schema({
@@ -22,6 +23,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
+        enum: [['user', 'admin', 'trainer'], "Role is not valid."],
     },
     weightIns: {
         type: [ObjectId],
@@ -32,7 +34,27 @@ const userSchema = new Schema({
         type: [ObjectId],
         ref: 'diary',
         default: []
-    }
+    },
+    age: {
+        type: Number,
+        min: [0, "Age cannot be less than zero."]
+    },
+    gender: {
+        type: String,
+        enum: [['male', 'female'], "Gender is not valid."],
+    },
+    height: {
+        type: Number,
+        min: [0, "Height cannot be less than zero."]
+    },
+    goal:{
+        type: String,
+        enum: [['lose', 'gain', 'maintain'], "Goal is not valid."],
+    },
+    activityLevel: {
+        type: String,
+        enum: [['sedentary', 'lightly active', 'moderately active', 'active', 'very active'], 'Activity level is not valid.'],
+    },
 }, { timestamps: true });
 
 userSchema.virtual('confirmPassword').set(function (value) {
