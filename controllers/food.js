@@ -30,6 +30,7 @@ exports.getFood = async (req, res) => {
 
 exports.addFood = async (req, res) => {
     const food = new Food(req.body);
+    food.ownerId = req.user._id;
 
     try {
         await food.save();
@@ -48,13 +49,6 @@ exports.addFood = async (req, res) => {
 exports.editFood = async (req, res) => {
     const food = await Food.findById(req.params.id);
 
-    if (req.user.role != 'admin' || (food.ownerId != req.user._id && req.user.role != 'admin')) {
-        return res.status(401).json({
-            status: 'failed',
-            message: 'Not authorized'
-        });
-    }
-
     if (!food) {
         return res.status(404).json({
             status: 'failed',
@@ -62,26 +56,33 @@ exports.editFood = async (req, res) => {
         });
     }
 
-    const updatedFood = Object.assign(food.toObject(), req.body);
-    food.set(updatedFood);
-    await food.save();
+    if (req.user.role != 'admin' && food.ownerId.toString() != req.user._id) {
+        return res.status(401).json({
+            status: 'failed',
+            message: 'Not authorized'
+        });
+    }
 
-    res.status(200).json({
-        status: 'success',
-        data: food
-    });
+    try {
+        const updatedFood = Object.assign(food.toObject(), req.body);
+        food.set(updatedFood);
+        await food.save();
+
+        res.status(200).json({
+            status: 'success',
+            data: food
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
 }
 
 exports.deleteFood = async (req, res) => {
     const food = await Food.findById(req.params.id);
 
-    if (req.user.role != 'admin' || (food.ownerId != req.user._id && req.user.role != 'admin')) {
-        return res.status(401).json({
-            status: 'failed',
-            message: 'Not authorized'
-        });
-    }
-
     if (!food) {
         return res.status(404).json({
             status: 'failed',
@@ -89,10 +90,24 @@ exports.deleteFood = async (req, res) => {
         });
     }
 
-    await food.deleteOne();
+    if (req.user.role != 'admin' && food.ownerId.toString() != req.user._id) {
+        return res.status(401).json({
+            status: 'failed',
+            message: 'Not authorized'
+        });
+    }
+    try {
+        await food.deleteOne();
 
-    res.status(200).json({
-        status: 'success',
-        data: food
-    });
+        res.status(200).json({
+            status: 'success',
+            data: food
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+
 }

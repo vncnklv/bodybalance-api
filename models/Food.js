@@ -4,7 +4,7 @@ const micronutrientsSchema = require('./schemas/micronutrients');
 const foodSchema = new Schema({
     name: {
         type: String,
-        require: [true, 'Food name is missing.'],
+        required: [true, 'Food name is missing.'],
         unique: true
     },
     calories: {
