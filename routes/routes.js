@@ -1,6 +1,6 @@
 const express = require("express");
 
-const { signIn, signUp } = require("../controllers/auth");
+const { signIn, signUp, logout } = require("../controllers/auth");
 const { getWeights, addWeight, removeWeight, editWeight, getWeight } = require("../controllers/dailyWeight");
 const { getFoods, addFood, getFood, editFood, deleteFood } = require("../controllers/food");
 const { getAllDiariesForCurrentUser, addDiary, addFoodToDiary, getDiary, removeFoodFromDiary, updateFoodInDiary } = require("../controllers/diary");
@@ -13,6 +13,8 @@ router.post("/signin", signIn);
 router.post("/signUp", signUp);
 
 router.all('*', isAuth);
+
+router.get("/logout", logout);
 
 router
     .route('/user/weight/')

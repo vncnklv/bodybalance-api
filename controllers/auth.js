@@ -1,6 +1,7 @@
 const User = require("../models/User");
+const BlacklistedToken = require("../models/BlacklistedToken");
 const bcrypt = require("bcrypt");
-const { generateToken } = require("../utilities");
+const { generateToken, verifyToken } = require("../utilities");
 
 exports.signIn = async (req, res) => {
     const user = await User.findOne({ username: new RegExp(`^${req.body.username}$`, 'i') });
@@ -49,4 +50,28 @@ exports.signUp = async (req, res) => {
             message: err.message
         })
     }
+}
+
+exports.logout = async (req, res) => {
+    const token = req.headers['x-authorization'];
+    const data = verifyToken(token);
+    const blacklistedToken = new BlacklistedToken({
+        token: token,
+        expiresAt: data.exp * 1000,
+    });
+
+    try {
+        await blacklistedToken.save();
+        res.status(200).json({
+            status: "success",
+            message: "Logged out"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            status: "failed",
+            message: err.message
+        })
+    }
+
 }

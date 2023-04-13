@@ -1,15 +1,14 @@
 const jwt = require('jsonwebtoken');
 const secret = process.env.SECRET;
-const mongoose = require('mongoose');
 
 function generateToken(data) {
-    return jwt.sign(data, secret, { expiresIn: '1d' });
+    return jwt.sign(data, secret, { expiresIn: '7d' });
 }
 
 function verifyToken(token) {
     try {
-        const userData = jwt.verify(token, secret);
-        return userData.userId;
+        const data = jwt.verify(token, secret);
+        return data;
     } catch {
         return undefined;
     }
