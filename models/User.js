@@ -23,7 +23,12 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: [['user', 'admin', 'trainer'], "Role is not valid."],
+        enum: { values: ['user', 'admin', 'trainer'], message: "Role is not valid." },
+        default: 'user'
+    },
+    goals: {
+        type: goalsSchema,
+        default: {}
     },
     weightIns: {
         type: [ObjectId],
@@ -41,19 +46,19 @@ const userSchema = new Schema({
     },
     gender: {
         type: String,
-        enum: [['male', 'female'], "Gender is not valid."],
+        enum: { values: ['male', 'female'], message: "Gender is not valid." }
     },
     height: {
         type: Number,
         min: [0, "Height cannot be less than zero."]
     },
-    goal:{
+    goal: {
         type: String,
-        enum: [['lose', 'gain', 'maintain'], "Goal is not valid."],
+        enum: { values: ['lose weight', 'gain weight', 'maintain weight'], message: "Goal is not valid." }
     },
     activityLevel: {
         type: String,
-        enum: [['sedentary', 'lightly active', 'moderately active', 'active', 'very active'], 'Activity level is not valid.'],
+        enum: { values: ['sedentary', 'lightly active', 'moderately active', 'active', 'very active'], message: "Activity level is not valid." }
     },
 }, { timestamps: true });
 

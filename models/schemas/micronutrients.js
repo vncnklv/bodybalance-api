@@ -18,12 +18,17 @@ const micronutrientsSchema = new Schema({
     cobalt: Number,
     fluorine: Number,
     iodine: Number,
-    vitamin_a: Number,
-    vitamin_c: Number,
-    vitamin_d: Number,
-    vitamin_e: Number,
-    vitamin_k: Number,
-    carotenoids: Number
+    vitaminA: Number,
+    vitaminC: Number,
+    vitaminD: Number,
+    vitaminE: Number,
+    vitaminK: Number,
+    carotenoids: Number,
+    niacin: Number,
+    vitaminB6: Number,
+    vitaminB12: Number,
+    folate: Number,
+    pantothenicAcid: Number,
 }, { _id: false });
 
 micronutrientsSchema.pre('save', function (next) {
