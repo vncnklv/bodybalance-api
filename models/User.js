@@ -60,6 +60,16 @@ const userSchema = new Schema({
         type: String,
         enum: { values: ['sedentary', 'lightly active', 'moderately active', 'active', 'very active'], message: "Activity level is not valid." }
     },
+    name: {
+        type: String,
+        minlength: [2, "Name must be minimum 2 characters long."],
+        required: [true, "Name is required."]
+    },
+    lastname: {
+        type: String,
+        minlength: [2, "Lastname must be minimum 2 characters long."],
+        required: [true, "Lastname is required."]
+    }
 }, { timestamps: true });
 
 userSchema.virtual('confirmPassword').set(function (value) {
