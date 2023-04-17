@@ -65,7 +65,7 @@ const userSchema = new Schema({
         minlength: [2, "Name must be minimum 2 characters long."],
         required: [true, "Name is required."]
     },
-    lastname: {
+    lastName: {
         type: String,
         minlength: [2, "Lastname must be minimum 2 characters long."],
         required: [true, "Lastname is required."]
