@@ -60,6 +60,10 @@ const userSchema = new Schema({
         type: String,
         enum: { values: ['sedentary', 'lightly active', 'moderately active', 'active', 'very active'], message: "Activity level is not valid." }
     },
+    currentWeight: {
+        type: Number,
+        min: [0, "Weight cannot be less than zero."]
+    },
     name: {
         type: String,
         minlength: [2, "Name must be minimum 2 characters long."],

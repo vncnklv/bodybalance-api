@@ -6,7 +6,7 @@ const { getFoods, addFood, getFood, editFood, deleteFood } = require("../control
 const { getAllDiariesForCurrentUser, addDiary, addFoodToDiary, getDiary, removeFoodFromDiary, updateFoodInDiary } = require("../controllers/diary");
 
 const { isAuth } = require("../middleware/isAuth");
-const { setUserGoals, getUserGoals, updateUserGoals, getUserData, updateUserData } = require("../controllers/user");
+const { setUserGoals, getUserGoals, updateUserGoals, getUserData, updateUserData, setUserGoal } = require("../controllers/user");
 
 const router = express.Router();
 
@@ -16,6 +16,8 @@ router.post("/signUp", signUp);
 router.all('*', isAuth);
 
 router.get("/logout", logout);
+
+router.post('/setUserGoal', setUserGoal);
 
 router
     .route("/user")

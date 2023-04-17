@@ -1,6 +1,7 @@
+const calculateCaloriesAndNutrients = require("../goal");
 
 exports.updateUserData = async (req, res) => {
-    const { username, email, age, name, lastName, height, gender } = req.body;
+    const { username, email, age, name, lastName, height, gender, goal, activityLevel,weight } = req.body;
     const user = req.user;
 
     if (username) user.username = username;
@@ -10,6 +11,9 @@ exports.updateUserData = async (req, res) => {
     if (lastName) user.lastName = lastName;
     if (height) user.height = height;
     if (gender) user.gender = gender;
+    if (goal) user.goal = goal;
+    if (activityLevel) user.activityLevel = activityLevel;
+    if (weight) user.currentWeight = weight;
 
     try {
         await user.save();
@@ -25,10 +29,13 @@ exports.updateUserData = async (req, res) => {
                 lastName: user.lastName,
                 height: user.height,
                 gender: user.gender,
+                goal: user.goal,
+                activityLevel: user.activityLevel,
+                currentWeight: req.user.currentWeight,
             }
         });
     } catch (err) {
-        res.status(500).json({
+        res.status(400).json({
             status: 'failed',
             message: err.message
         })
@@ -45,6 +52,9 @@ exports.getUserData = (req, res) => {
         lastName: req.user.lastName,
         height: req.user.height,
         gender: req.user.gender,
+        goal: req.user.goal,
+        activityLevel: req.user.activityLevel,
+        currentWeight: req.user.currentWeight,
     }
 
     res.status(200).json({
@@ -116,7 +126,7 @@ exports.setUserGoals = async (req, res) => {
     }
 }
 
-exports.updateUserGoals = async (req, res, next) => {
+exports.updateUserGoals = async (req, res) => {
     const { calories, protein, carbohydrates, fats, cholesterol, fiber, micronutrients } = req.body;
 
     if (req.user.goals.calories == 0) {
@@ -146,6 +156,39 @@ exports.updateUserGoals = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             data: req.user.goals
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+}
+
+exports.setUserGoal = async (req, res) => {
+    const { goal, activityLevel, weight } = req.body;
+    const user = req.user;
+
+    user.goal = goal;
+    user.activityLevel = activityLevel;
+    user.currentWeight = weight;
+
+    try {
+        await user.save();
+
+        const goals = calculateCaloriesAndNutrients(user);
+
+        user.goals = goals;
+        await user.save();
+
+        res.status(200).json({
+            status: 'success',
+            data: user
+            // data: {
+            //     goal: user.goal,
+            //     activityLevel: user.activityLevel,
+            //     currentWeight: user.currentWeight,
+            // }
         });
     } catch (err) {
         res.status(400).json({
