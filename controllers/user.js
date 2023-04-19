@@ -183,12 +183,12 @@ exports.setUserGoal = async (req, res) => {
 
         res.status(200).json({
             status: 'success',
-            data: user
-            // data: {
-            //     goal: user.goal,
-            //     activityLevel: user.activityLevel,
-            //     currentWeight: user.currentWeight,
-            // }
+            data: {
+                goal: user.goal,
+                activityLevel: user.activityLevel,
+                currentWeight: user.currentWeight,
+                goals: user.goals
+            }
         });
     } catch (err) {
         res.status(400).json({
