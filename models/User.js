@@ -73,6 +73,16 @@ const userSchema = new Schema({
         type: String,
         minlength: [2, "Lastname must be minimum 2 characters long."],
         required: [true, "Lastname is required."]
+    },
+    trainer: {
+        type: ObjectId,
+        ref: 'User',
+        default: null
+    },
+    clients: {
+        type: [ObjectId],
+        ref: 'User',
+        default: []
     }
 }, { timestamps: true });
 

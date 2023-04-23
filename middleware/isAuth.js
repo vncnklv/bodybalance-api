@@ -23,7 +23,7 @@ exports.isAuth = async (req, res, next) => {
         return
     }
 
-    const user = await User.findById(userData.userId).populate('weightIns');
+    const user = await User.findById(userData.userId).populate('weightIns').populate('trainer', 'name lastName _id');
     if (!user) {
         res.status(401).json({
             status: "failed",

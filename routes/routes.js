@@ -4,9 +4,9 @@ const { signIn, signUp, logout } = require("../controllers/auth");
 const { getWeights, addWeight, removeWeight, editWeight, getWeight } = require("../controllers/dailyWeight");
 const { getFoods, addFood, getFood, editFood, deleteFood } = require("../controllers/food");
 const { getAllDiariesForCurrentUser, addDiary, addFoodToDiary, getDiary, removeFoodFromDiary, updateFoodInDiary } = require("../controllers/diary");
+const { setUserGoals, getUserGoals, updateUserGoals, getUserData, updateUserData, setUserGoal, updateUserGoalsByTrainer, hireTrainer, unhireTraner, getAllTrainers } = require("../controllers/user");
 
 const { isAuth } = require("../middleware/isAuth");
-const { setUserGoals, getUserGoals, updateUserGoals, getUserData, updateUserData, setUserGoal } = require("../controllers/user");
 
 const router = express.Router();
 
@@ -29,6 +29,15 @@ router
     .get(getUserGoals)
     .post(setUserGoals)
     .patch(updateUserGoals)
+
+router
+    .route('/user/trainer')
+    .post(hireTrainer)
+    .delete(unhireTraner);
+
+router.get('/user/trainers', getAllTrainers);
+
+router.patch('/user/goals/:id', updateUserGoalsByTrainer)
 
 router
     .route('/user/weight/')

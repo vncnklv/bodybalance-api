@@ -1,7 +1,8 @@
 const calculateCaloriesAndNutrients = require("../goal");
+const User = require("../models/User");
 
 exports.updateUserData = async (req, res) => {
-    const { username, email, age, name, lastName, height, gender, goal, activityLevel,weight } = req.body;
+    const { username, email, age, name, lastName, height, gender, goal, activityLevel, weight } = req.body;
     const user = req.user;
 
     if (username) user.username = username;
@@ -55,6 +56,7 @@ exports.getUserData = (req, res) => {
         goal: req.user.goal,
         activityLevel: req.user.activityLevel,
         currentWeight: req.user.currentWeight,
+        trainer: req.user.trainer
     }
 
     res.status(200).json({
@@ -196,4 +198,148 @@ exports.setUserGoal = async (req, res) => {
             message: err.message
         });
     }
+}
+
+exports.hireTrainer = async (req, res) => {
+    const { trainerId } = req.body;
+    const trainee = req.user;
+
+    const trainer = await User.findById(trainerId);
+
+    if (!trainer) {
+        res.status(400).json({
+            status: 'failed',
+            message: 'Trainer not found.'
+        });
+    }
+
+    if (trainer.role != 'trainer') {
+        res.status(400).json({
+            status: 'failed',
+            message: 'User is not a trainer.'
+        });
+    }
+
+    if (trainee.trainer) {
+        res.status(400).json({
+            status: 'failed',
+            message: 'You already have a trainer.'
+        });
+    }
+
+    trainee.trainer = trainer._id;
+
+    try {
+        await trainee.save();
+        trainer.clients.push(trainee._id);
+        await trainer.save();
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                trainer: trainee.trainer
+            }
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+}
+
+exports.unhireTraner = async (req, res) => {
+    const trainee = req.user;
+
+    if (!trainee.trainer) {
+        res.status(400).json({
+            status: 'failed',
+            message: 'You do not have a trainer.'
+        });
+    }
+
+    const trainer = await User.findById(trainee.trainer);
+
+    trainee.trainer = null;
+    trainer.clients.pull(trainee);
+
+    try {
+        await trainee.save();
+        await trainer.save();
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                trainer: trainee.trainer
+            }
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+}
+
+exports.updateUserGoalsByTrainer = async (req, res) => {
+    const { calories, protein, carbohydrates, fats, cholesterol, fiber, micronutrients } = req.body;
+    const trainee = await User.findById(req.params.id);
+
+    if (!trainee) {
+        return res.status(400).json({
+            status: 'failed',
+            message: 'Trainee not found.'
+        });
+    }
+
+    if (trainee.trainer.toString() != req.user._id.toString()) {
+        return res.status(400).json({
+            status: 'failed',
+            message: 'You are not authorized to update this user goals.'
+        });
+    }
+
+    Object.assign(trainee.goals, {
+        calories: calories ? Number(calories) : trainee.goals.calories,
+        protein: protein ? Number(protein) : trainee.goals.protein,
+        carbohydrates: carbohydrates ? Number(carbohydrates) : trainee.goals.carbohydrates,
+        fats: fats ? Number(fats) : trainee.goals.fats,
+        cholesterol: cholesterol ? Number(cholesterol) : trainee.goals.cholesterol,
+        fiber: fiber ? Number(fiber) : trainee.goals.fiber
+    });
+
+    if (micronutrients) {
+        for (const [key, value] of Object.entries(micronutrients)) {
+            trainee.goals.micronutrients[key] = Number(value);
+        }
+    }
+
+    try {
+        await req.user.save();
+        res.status(200).json({
+            status: 'success',
+            data: trainee.goals
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+}
+
+exports.getAllTrainers = async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const count = Number(req.query.count) || 10;
+
+    const prevPage = page > 1 ? page - 1 : undefined;
+    const nextPage = hasNextPage ? page + 1 : undefined;
+
+    const hasNextPage = await User.find({ role: 'trainer' }).skip(page * count).limit(count).countDocuments() > 0;
+    const trainers = await User.find({ role: 'trainer' }).skip((page - 1) * count).limit(count);
+
+    res.status(200).json({
+        status: 'success',
+        data: { trainers, prevPage, nextPage }
+    });
 }
