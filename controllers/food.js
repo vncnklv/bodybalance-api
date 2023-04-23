@@ -3,12 +3,16 @@ const Food = require('../models/Food');
 exports.getFoods = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const count = Number(req.query.count) || 10;
-
+    
+    const hasNextPage = await Food.find({}).skip(page * count).limit(count).countDocuments() > 0;
     const foods = await Food.find({}).sort({ createdOn: 1 }).skip((page - 1) * count).limit(count);
+
+    const prevPage = page > 1 ? page - 1 : undefined;
+    const nextPage = hasNextPage ? page + 1 : undefined;
 
     res.status(200).json({
         status: 'success',
-        data: foods
+        data: { foods, prevPage, nextPage }
     });
 }
 
