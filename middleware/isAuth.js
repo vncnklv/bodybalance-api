@@ -9,7 +9,7 @@ exports.isAuth = async (req, res, next) => {
     if (!userData) {
         res.status(401).json({
             status: "failed",
-            message: "Please login."
+            message: "Expired token. Please login."
         })
         return
     }
@@ -18,7 +18,7 @@ exports.isAuth = async (req, res, next) => {
     if (blacklistedToken) {
         res.status(401).json({
             status: "failed",
-            message: "Please login."
+            message: "Expired token. Please login."
         })
         return
     }
