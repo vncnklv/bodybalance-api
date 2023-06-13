@@ -2,14 +2,14 @@ const express = require('express');
 require('dotenv').config();
 require("./database");
 require('./models/Diary');
-const cors = require('./middleware/cors');
+const cors = require('cors');
 const requestLogger = require("./middleware/requestLogger");
 
 const routes = require("./routes/routes");
 
 const app = express();
 
-// app.use(cors);
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
