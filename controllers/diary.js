@@ -60,6 +60,38 @@ exports.getDiary = async (req, res) => {
     }
 }
 
+exports.getTodaysDiary = async (req, res) => {
+    try {
+        const diary = await Diary.findOne({ ownerId: req.user._id, date: new Date().toISOString().substring(0, 10) })
+            .populate(['breakfast.foods.food', 'lunch.foods.food', 'dinner.foods.food', 'snacks.foods.food']);
+
+        if (!diary) {
+            const newDiary = new Diary({
+                date: new Date().toISOString().substring(0, 10),
+                ownerId: req.user._id
+            });
+            await newDiary.save();
+            req.user.diaries.push(newDiary);
+            await req.user.save();
+            return res.status(200).json({
+                status: 'success',
+                data: newDiary
+            });
+        }
+
+        if (diary.ownerId.toString() !== req.user._id.toString()) throw new Error('You are not authorized to view this diary');
+
+        res.status(200).json({
+            status: 'success',
+            data: diary
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+}
 exports.addFoodToDiary = async (req, res) => {
     const diaryId = req.params.id;
     let { meal, foodId, quantity } = req.body;
@@ -102,8 +134,7 @@ exports.removeFoodFromDiary = async (req, res) => {
     try {
         const diary = await Diary.findById(id);
         if (!diary) throw new Error('Diary not found');
-        if (diary.ownerId.toString() !== req.user._id.toString()) throw new Error('You are not authorized to view this diary');
-
+        if (diary.ownerId.toString() !== req.user._id.toString()) throw new Error('You are not authorized to edit this diary');
         if (!['breakfast', 'lunch', 'dinner', 'snacks'].includes(meal)) throw new Error('Invalid meal');
 
         const food = diary[meal].foods.find(f => f._id.toString() === foodId);

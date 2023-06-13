@@ -3,7 +3,7 @@ const express = require("express");
 const { signIn, signUp, logout } = require("../controllers/auth");
 const { getWeights, addWeight, removeWeight, editWeight, getWeight } = require("../controllers/dailyWeight");
 const { getFoods, addFood, getFood, editFood, deleteFood } = require("../controllers/food");
-const { getAllDiariesForCurrentUser, addDiary, addFoodToDiary, getDiary, removeFoodFromDiary, updateFoodInDiary } = require("../controllers/diary");
+const { getAllDiariesForCurrentUser, addDiary, addFoodToDiary, getDiary, removeFoodFromDiary, updateFoodInDiary, getTodaysDiary } = require("../controllers/diary");
 const { setUserGoals, getUserGoals, updateUserGoals, getUserData, updateUserData, setUserGoal, updateUserGoalsByTrainer, hireTrainer, unhireTraner, getAllTrainers } = require("../controllers/user");
 
 const { isAuth } = require("../middleware/isAuth");
@@ -61,9 +61,11 @@ router
     .patch(editFood)
     .delete(deleteFood)
 
+router.get('allDiaries', getAllDiariesForCurrentUser);
+
 router
     .route('/diary')
-    .get(getAllDiariesForCurrentUser)
+    .get(getTodaysDiary)
     .post(addDiary)
 
 router
