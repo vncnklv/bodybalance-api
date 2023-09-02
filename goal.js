@@ -12,7 +12,7 @@ const calculateCaloriesAndNutrients = (user) => {
     let calories = user.goal == 'lose weight' ? AMR - 500 : user.goal == 'gain weight' ? AMR + 500 : AMR;
     calories = Math.round(calories);
 
-    const protein = (user.activityLevel == 'sedentary' ? 1.6 : user.activityLevel == 'lightly active' ? 1.8 : user.activityLevel == 'moderately active' ? 2 : 2.2) * user.currentWeight;
+    const protein = Math.round((user.activityLevel == 'sedentary' ? 1.6 : user.activityLevel == 'lightly active' ? 1.8 : user.activityLevel == 'moderately active' ? 2 : 2.2) * user.currentWeight);
     const carbohydrates = Math.round((calories - protein * 4) * 0.6 / 4);
     const fats = Math.round((calories - protein * 4 - carbohydrates * 4) / 9);
     const cholesterol = 0.3;

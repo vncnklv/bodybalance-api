@@ -8,6 +8,7 @@ const userSchema = new Schema({
         type: String,
         required: [true, "Username is required."],
         min: [3, "Username must be atlast 3 characters long."],
+        max: [20, "Username cannot be longer than 20 characters."],
         unique: true
     },
     email: {
@@ -67,11 +68,13 @@ const userSchema = new Schema({
     name: {
         type: String,
         minlength: [2, "Name must be minimum 2 characters long."],
+        maxlength: [20, "Lastname cannot be longer than 20 characters."],
         required: [true, "Name is required."]
     },
     lastName: {
         type: String,
         minlength: [2, "Lastname must be minimum 2 characters long."],
+        maxlength: [20, "Lastname cannot be longer than 20 characters."],
         required: [true, "Lastname is required."]
     },
     trainer: {
@@ -83,7 +86,19 @@ const userSchema = new Schema({
         type: [ObjectId],
         ref: 'User',
         default: []
-    }
+    },
+    description: {
+        type: String,
+        minlength: [100, "Description must be minimum 100 characters long."],
+    },
+    price: {
+        type: Number,
+        min: [0, "Price cannot be less than zero."]
+    },
+    experience: {
+        type: Number,
+        min: [0, "Experience cannot be less than zero."]
+    },
 }, { timestamps: true });
 
 userSchema.virtual('confirmPassword').set(function (value) {

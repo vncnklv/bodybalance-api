@@ -61,13 +61,16 @@ exports.getDiary = async (req, res) => {
 }
 
 exports.getTodaysDiary = async (req, res) => {
+    const date = req.query.date || new Date().toISOString().substring(0, 10);
+
     try {
-        const diary = await Diary.findOne({ ownerId: req.user._id, date: new Date().toISOString().substring(0, 10) })
+        const diary = await Diary.findOne({ ownerId: req.user._id, date })
             .populate(['breakfast.foods.food', 'lunch.foods.food', 'dinner.foods.food', 'snacks.foods.food']);
 
+        
         if (!diary) {
             const newDiary = new Diary({
-                date: new Date().toISOString().substring(0, 10),
+                date,
                 ownerId: req.user._id
             });
             await newDiary.save();
@@ -92,6 +95,7 @@ exports.getTodaysDiary = async (req, res) => {
         });
     }
 }
+
 exports.addFoodToDiary = async (req, res) => {
     const diaryId = req.params.id;
     let { meal, foodId, quantity } = req.body;
@@ -159,7 +163,7 @@ exports.removeFoodFromDiary = async (req, res) => {
 
 exports.updateFoodInDiary = async (req, res) => {
     const { id, foodId, meal } = req.params;
-    const { quantity } = req.body;
+    const { quantity: newQuantity, meal: newMeal } = req.body;
 
     try {
         const diary = await Diary.findById(id);
@@ -171,7 +175,14 @@ exports.updateFoodInDiary = async (req, res) => {
         const food = diary[meal].foods.find(f => f._id.toString() === foodId);
         if (!food) throw new Error('Food not found');
 
-        food.quantity = quantity;
+        if (newQuantity && food.quantity != newQuantity)
+            food.quantity = newQuantity;
+
+        if (newMeal && meal != newMeal) {
+            diary[meal].foods.pull(foodId);
+            diary[newMeal].foods.push({ food: food.food._id, quantity: newQuantity || food.quantity })
+        }
+
         await diary.save();
 
         await diary.populate(['breakfast.foods.food', 'lunch.foods.food', 'dinner.foods.food', 'snacks.foods.food']);

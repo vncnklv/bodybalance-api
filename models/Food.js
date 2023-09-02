@@ -35,6 +35,10 @@ const foodSchema = new Schema({
         type: Number,
         min: [0, 'cholesterol cannot be less than zero.']
     },
+    sugar: {
+        type: Number,
+        min: [0, 'sugar cannot be less than zero.']
+    },
     micronutrients: {
         type: micronutrientsSchema
     },

@@ -1,4 +1,5 @@
 const DailyWeight = require('../models/DailyWeight');
+const User = require('../models/User');
 const { areEqualObjectIds } = require('../utilities');
 
 exports.getWeights = (req, res) => {
@@ -33,7 +34,6 @@ exports.getWeight = async (req, res) => {
     });
 }
 
-
 exports.addWeight = async (req, res) => {
     const user = req.user;
     const newWeight = Number(req.body.weight);
@@ -63,7 +63,6 @@ exports.addWeight = async (req, res) => {
         data: user.weightIns
     });
 }
-
 
 exports.removeWeight = async (req, res) => {
     const user = req.user;
@@ -128,5 +127,29 @@ exports.editWeight = async (req, res) => {
     res.status(200).json({
         status: "success",
         data: weightData
+    });
+}
+
+exports.getWeightsByTrainer = async (req, res) => {
+    const user = req.user;
+    const client = await User.findById(req.params.userId);
+
+    if (!client) {
+        return res.status(404).json({
+            status: "failed",
+            message: "Client not found!"
+        });
+    }
+
+    if (!areEqualObjectIds(user._id, client.trainer)) {
+        return res.status(403).json({
+            status: "failed",
+            message: "You cannot access this data!"
+        });
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: client.weightIns
     });
 }

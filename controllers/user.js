@@ -1,5 +1,46 @@
 const calculateCaloriesAndNutrients = require("../goal");
+const DailyWeight = require("../models/DailyWeight");
+const Diary = require("../models/Diary");
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
+
+exports.changePassword = async (req, res) => {
+    const { oldPassword, newPassword, repeatNewPassword } = req.body;
+
+    const passwordsMatch = await bcrypt.compare(oldPassword, req.user.password);
+
+    if (!passwordsMatch) {
+        res.status(401).json({
+            status: 'failed',
+            message: 'Wrong password.'
+        });
+        return;
+    }
+
+    if (newPassword !== repeatNewPassword) {
+        res.status(400).json({
+            status: 'failed',
+            message: 'New passwords do not match.'
+        });
+        return;
+    }
+
+    try {
+        req.user.password = newPassword;
+        await req.user.save();
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Password changed successfully.'
+        });
+
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        })
+    }
+}
 
 exports.updateUserData = async (req, res) => {
     const { username, email, age, name, lastName, height, gender, goal, activityLevel, weight } = req.body;
@@ -65,7 +106,7 @@ exports.getUserData = (req, res) => {
     });
 }
 
-exports.getUserGoals = (req, res, next) => {
+exports.getUserGoals = (req, res) => {
     res.status(200).json({
         status: 'success',
         data: req.user.goals
@@ -136,6 +177,7 @@ exports.updateUserGoals = async (req, res) => {
             status: 'failed',
             message: 'User goals are not set.'
         });
+        return;
     }
 
     Object.assign(req.user.goals, {
@@ -168,12 +210,15 @@ exports.updateUserGoals = async (req, res) => {
 }
 
 exports.setUserGoal = async (req, res) => {
-    const { goal, activityLevel, weight } = req.body;
+    const { goal, activityLevel, weight, gender, age, height } = req.body;
     const user = req.user;
 
     user.goal = goal;
     user.activityLevel = activityLevel;
     user.currentWeight = weight;
+    user.gender = gender;
+    user.age = age;
+    user.height = height;
 
     try {
         await user.save();
@@ -207,21 +252,21 @@ exports.hireTrainer = async (req, res) => {
     const trainer = await User.findById(trainerId);
 
     if (!trainer) {
-        res.status(400).json({
+        return res.status(400).json({
             status: 'failed',
             message: 'Trainer not found.'
         });
     }
 
     if (trainer.role != 'trainer') {
-        res.status(400).json({
+        return res.status(400).json({
             status: 'failed',
             message: 'User is not a trainer.'
         });
     }
 
     if (trainee.trainer) {
-        res.status(400).json({
+        return res.status(400).json({
             status: 'failed',
             message: 'You already have a trainer.'
         });
@@ -315,7 +360,7 @@ exports.updateUserGoalsByTrainer = async (req, res) => {
     }
 
     try {
-        await req.user.save();
+        await trainee.save();
         res.status(200).json({
             status: 'success',
             data: trainee.goals
@@ -330,16 +375,174 @@ exports.updateUserGoalsByTrainer = async (req, res) => {
 
 exports.getAllTrainers = async (req, res) => {
     const page = Number(req.query.page) || 1;
-    const count = Number(req.query.count) || 10;
+    const count = Number(req.query.count) || 5;
+    const search = req.query.search || '';
+
+
+    const hasNextPage = await User.find({ role: 'trainer', $or: [{ name: RegExp(search, 'i') }, { username: RegExp(search, 'i') }, { lastname: RegExp(search, 'i') }] })
+        .sort({ 'clients': -1, 'experience': -1 }).skip(page * count).limit(count).countDocuments() > 0;
+    const trainers = await User.find({ role: 'trainer', $or: [{ name: RegExp(search, 'i') }, { username: RegExp(search, 'i') }, { lastname: RegExp(search, 'i') }] })
+        .sort({ 'clients': -1, 'experience': -1 }).skip((page - 1) * count).limit(count);
 
     const prevPage = page > 1 ? page - 1 : undefined;
     const nextPage = hasNextPage ? page + 1 : undefined;
-
-    const hasNextPage = await User.find({ role: 'trainer' }).skip(page * count).limit(count).countDocuments() > 0;
-    const trainers = await User.find({ role: 'trainer' }).skip((page - 1) * count).limit(count);
 
     res.status(200).json({
         status: 'success',
         data: { trainers, prevPage, nextPage }
     });
+}
+
+exports.becomeATraniner = async (req, res) => {
+    const { description, price, experience } = req.body;
+    const user = req.user;
+
+    if (user.role == 'trainer') {
+        res.json({
+            status: 'failed',
+            message: 'You are already a trainer.'
+        });
+        return;
+    }
+
+    if (!description || !price || !experience) {
+        res.json({
+            status: 'failed',
+            message: 'Please provide all the required fields.'
+        });
+        return;
+    }
+
+    user.role = 'trainer';
+    user.description = description;
+    user.price = price;
+    user.experience = experience;
+
+    try {
+        await user.save();
+        res.status(200).json({
+            status: 'success',
+            data: {
+                role: user.role
+            }
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+
+}
+
+exports.getAllTrainerClients = async (req, res) => {
+    const trainer = req.user;
+
+    if (trainer.role != 'trainer') {
+        res.status(400).json({
+            status: 'failed',
+            message: 'You are not a trainer.'
+        });
+        return;
+    }
+
+    const page = Number(req.query.page) || 1;
+    const count = Number(req.query.count) || 5;
+    const search = req.query.search || '';
+
+    const hasNextPage = await User.find({ trainer: trainer._id, $or: [{ name: RegExp(search, 'i') }, { username: RegExp(search, 'i') }, { lastname: RegExp(search, 'i') }] })
+        .skip(page * count).limit(count).countDocuments() > 0;
+    const clients = await User.find({ trainer: trainer._id, $or: [{ name: RegExp(search, 'i') }, { username: RegExp(search, 'i') }, { lastname: RegExp(search, 'i') }] })
+        .skip((page - 1) * count).limit(count).populate('weightIns');
+
+    const prevPage = page > 1 ? page - 1 : undefined;
+    const nextPage = hasNextPage ? page + 1 : undefined;
+
+    res.status(200).json({
+        status: 'success',
+        data: { clients, prevPage, nextPage }
+    });
+}
+
+exports.getAllUsers = async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const count = Number(req.query.count) || 10;
+    const search = req.query.search || '';
+
+    const hasNextPage = await User.find({ $or: [{ name: RegExp(search, 'i') }, { username: RegExp(search, 'i') }, { lastname: RegExp(search, 'i') }] })
+        .skip(page * count).limit(count).countDocuments() > 0;
+    const users = await User.find({ $or: [{ name: RegExp(search, 'i') }, { username: RegExp(search, 'i') }, { lastname: RegExp(search, 'i') }] })
+        .skip((page - 1) * count).limit(count);
+
+    const prevPage = page > 1 ? page - 1 : undefined;
+    const nextPage = hasNextPage ? page + 1 : undefined;
+
+    res.status(200).json({
+        status: 'success',
+        data: { users, prevPage, nextPage }
+    });
+}
+
+exports.deleteUserByAdmin = async (req, res) => {
+    if (req.user.role != 'admin') {
+        res.status(403).json({
+            status: 'failed',
+            message: 'You are not authorized to delete users.'
+        });
+        return;
+    }
+
+    try {
+        const result = await User.findByIdAndDelete(req.params.id);
+
+        result.weightIns.forEach(async (weightIn) => {
+            await DailyWeight.findByIdAndDelete(weightIn);
+        });
+
+        result.diaries.forEach(async (diary) => {
+            await Diary.findByIdAndDelete(diary);
+        });
+
+        result.clients.forEach(async (client) => {
+            await User.findByIdAndUpdate(client, { trainer: null });
+        });
+
+        res.status(200).json({
+            status: 'success',
+            data: result
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
+
+}
+
+exports.demoteTrainer = async (req, res) => {
+    if (req.user.role != 'admin') {
+        res.status(403).json({
+            status: 'failed',
+            message: 'You are not authorized to demote trainers.'
+        });
+        return;
+    }
+
+    try {
+        const result = await User.findByIdAndUpdate(req.params.id, { role: 'user', clients: [], experience: 0, price: 0, description: '' });
+
+        result.clients.forEach(async (client) => {
+            await User.findByIdAndUpdate(client, { trainer: null });
+        });
+
+        res.status(200).json({
+            status: 'success'
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err.message
+        });
+    }
 }

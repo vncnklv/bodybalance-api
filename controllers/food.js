@@ -5,8 +5,30 @@ exports.getFoods = async (req, res) => {
     const count = Number(req.query.count) || 10;
     const search = req.query.search || '';
 
-    const hasNextPage = await Food.find({}).skip(page * count).limit(count).countDocuments() > 0;
+    const hasNextPage = await Food.find({ name: RegExp(search, 'i') }).skip(page * count).limit(count).countDocuments() > 0;
     const foods = await Food.find({ name: RegExp(search, 'i') }).sort({ createdOn: 1 }).skip((page - 1) * count).limit(count);
+
+    const prevPage = page > 1 ? page - 1 : undefined;
+    const nextPage = hasNextPage ? page + 1 : undefined;
+
+    res.status(200).json({
+        status: 'success',
+        data: { foods, prevPage, nextPage }
+    });
+}
+
+exports.getFoodsForCurrentUser = async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const count = Number(req.query.count) || 10;
+    const search = req.query.search || '';
+
+    const query = { name: RegExp(search, 'i') };
+    if (req.user.role != 'admin') {
+        query.ownerId = req.user._id;
+    }
+    
+    const hasNextPage = await Food.find(query).skip(page * count).limit(count).countDocuments() > 0;
+    const foods = await Food.find(query).sort({ createdOn: 1 }).skip((page - 1) * count).limit(count);
 
     const prevPage = page > 1 ? page - 1 : undefined;
     const nextPage = hasNextPage ? page + 1 : undefined;

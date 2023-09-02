@@ -2,9 +2,9 @@ const express = require("express");
 
 const { signIn, signUp, logout } = require("../controllers/auth");
 const { getWeights, addWeight, removeWeight, editWeight, getWeight } = require("../controllers/dailyWeight");
-const { getFoods, addFood, getFood, editFood, deleteFood } = require("../controllers/food");
+const { getFoods, addFood, getFood, editFood, deleteFood, getFoodsForCurrentUser } = require("../controllers/food");
 const { getAllDiariesForCurrentUser, addDiary, addFoodToDiary, getDiary, removeFoodFromDiary, updateFoodInDiary, getTodaysDiary } = require("../controllers/diary");
-const { setUserGoals, getUserGoals, updateUserGoals, getUserData, updateUserData, setUserGoal, updateUserGoalsByTrainer, hireTrainer, unhireTraner, getAllTrainers } = require("../controllers/user");
+const { setUserGoals, getUserGoals, updateUserGoals, getUserData, updateUserData, setUserGoal, updateUserGoalsByTrainer, hireTrainer, unhireTraner, getAllTrainers, changePassword, becomeATraniner, getAllTrainerClients, getAllUsers, deleteUserByAdmin, demoteTrainer } = require("../controllers/user");
 
 const { isAuth } = require("../middleware/isAuth");
 
@@ -19,10 +19,21 @@ router.get("/logout", logout);
 
 router.post('/setUserGoal', setUserGoal);
 
+router.post('/changePassword', changePassword);
+
+router.get('/users', getAllUsers);
+
 router
     .route("/user")
     .get(getUserData)
     .patch(updateUserData)
+
+router
+    .route('/user/trainer')
+    .post(hireTrainer)
+    .delete(unhireTraner);
+
+router.delete('/user/:id', deleteUserByAdmin);
 
 router
     .route("/user/goals")
@@ -30,14 +41,16 @@ router
     .post(setUserGoals)
     .patch(updateUserGoals)
 
-router
-    .route('/user/trainer')
-    .post(hireTrainer)
-    .delete(unhireTraner);
+router.patch('/user/trainer/:id', demoteTrainer);
 
 router.get('/user/trainers', getAllTrainers);
+router.get('/user/clients', getAllTrainerClients);
+
+router.post('/becomeTrainer', becomeATraniner);
 
 router.patch('/user/goals/:id', updateUserGoalsByTrainer)
+
+router.get('/user/foods', getFoodsForCurrentUser);
 
 router
     .route('/user/weight/')
@@ -60,6 +73,7 @@ router
     .get(getFood)
     .patch(editFood)
     .delete(deleteFood)
+
 
 router.get('allDiaries', getAllDiariesForCurrentUser);
 
